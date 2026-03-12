@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleValidationException(MethodArgumentNotValidException e) {
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException e) {
         String errorMessage = e.getBindingResult()
                 .getFieldErrors()
                 .get(0)
@@ -23,15 +23,15 @@ public class GlobalExceptionHandler {
 
         log.warn("Ошибка валидации: {}", errorMessage);
 
-        return errorMessage;
+        return new ErrorResponse(errorMessage);
     }
 
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleValidationException(ValidationException e) {
+    public ErrorResponse handleValidationException(ValidationException e) {
 
         log.warn("Ошибка валидации: {}", e.getMessage());
 
-        return e.getMessage();
+        return new ErrorResponse(e.getMessage());
     }
 }
