@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -11,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
+@Validated
 public class UserController {
     private final UserService userService;
 
@@ -33,26 +36,31 @@ public class UserController {
         return userService.update(user);
     }
 
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable @Positive Long id) {
+        return userService.findById(id);
+    }
+
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+    public void addFriend(@PathVariable @Positive Long id, @PathVariable @Positive Long friendId) {
         userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
+    public void removeFriend(@PathVariable @Positive Long id, @PathVariable @Positive Long friendId) {
         userService.removeFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable Long id) {
+    public List<User> getFriends(@PathVariable @Positive Long id) {
         return userService.findById(id).getFriends().stream()
                 .map(userService::findById)
                 .toList();
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable Long id,
-                                       @PathVariable Long otherId) {
+    public List<User> getCommonFriends(@PathVariable @Positive Long id,
+                                       @PathVariable @Positive Long otherId) {
         return userService.getCommonFriends(id, otherId);
     }
 
