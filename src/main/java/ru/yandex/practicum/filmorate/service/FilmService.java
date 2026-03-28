@@ -66,8 +66,11 @@ public class FilmService {
     }
 
     public void removeLike(Long filmId, Long userId) {
+        userStorage.findById(userId);
+
         Film film = findById(filmId);
-        film.getLikes().remove(filmId);
+
+        film.getLikes().remove(userId);
     }
 
     public List<Film> getPopular(int count) {
