@@ -62,7 +62,7 @@ public class FilmService {
         Film film = findById(filmId);
         userStorage.findById(userId);
 
-        film.getLikes().add(filmId);
+        film.getLikes().add(userId);
     }
 
     public void removeLike(Long filmId, Long userId) {
