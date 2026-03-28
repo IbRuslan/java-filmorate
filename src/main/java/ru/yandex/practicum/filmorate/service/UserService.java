@@ -1,11 +1,16 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.UserStorage;
 
 import java.util.Collection;
 import java.util.List;
 
+@Slf4j
+@Service
 public class UserService {
     private final UserStorage userStorage;
 
@@ -14,11 +19,25 @@ public class UserService {
     }
 
     public User create(User user) {
+        normalizeUser(user);
         return userStorage.create(user);
     }
 
     public User update(User user) {
-        return userStorage.update(user);
+        if (user.getId() == null) {
+            log.warn("Попытка обновить фильм без id");
+            throw new ValidationException("Id должен быть указан");
+        }
+
+        userStorage.findById(user.getId());
+
+        normalizeUser(user);
+
+        User updated = userStorage.update(user);
+
+        log.info("Обновлён пользователь: {}", updated);
+
+        return updated;
     }
 
     public Collection<User> findAll() {
@@ -53,5 +72,12 @@ public class UserService {
                 .filter(other.getFriends()::contains)
                 .map(this::findById)
                 .toList();
+    }
+
+    private void normalizeUser(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+            log.info("Имя пользователя не указано, установлено значение логина");
+        }
     }
 }
