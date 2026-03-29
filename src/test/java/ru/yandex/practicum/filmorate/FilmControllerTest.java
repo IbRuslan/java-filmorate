@@ -7,6 +7,11 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.film.UserStorage;
 
 import java.time.LocalDate;
 
@@ -19,7 +24,11 @@ class FilmControllerTest {
     private final Validator validator =
             Validation.buildDefaultValidatorFactory().getValidator();
 
-    private final FilmController filmController = new FilmController();
+    private final FilmStorage filmStorage = new InMemoryFilmStorage();
+    private final UserStorage userStorage = new InMemoryUserStorage();
+    private final FilmService filmService = new FilmService(filmStorage, userStorage);
+
+    private final FilmController filmController = new FilmController(filmService);
 
     @Test
     void shouldThrowExceptionWhenNameEmpty() {

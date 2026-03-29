@@ -42,4 +42,11 @@ public class GlobalExceptionHandler {
 
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleException(Exception e) {
+        log.error("Ошибка сервера: ", e);
+        return new ErrorResponse("Внутренняя ошибка сервера");
+    }
 }

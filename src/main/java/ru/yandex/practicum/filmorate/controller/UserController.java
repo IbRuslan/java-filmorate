@@ -1,73 +1,67 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.constraints.Positive;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-@Slf4j
+
 @RestController
 @RequestMapping("/users")
+@Validated
 public class UserController {
-    private final Map<Long, User> users = new HashMap<>();
+    private final UserService userService;
 
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public Collection<User> getUsers() {
-        return users.values();
+        return userService.findAll();
     }
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
-
-        normalizeUser(user);
-
-        user.setId(getNextId());
-
-        users.put(user.getId(), user);
-        log.info("Создан пользователь: {}", user);
-
-        return user;
+        return userService.create(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        if (user.getId() == null) {
-            log.warn("Попытка обновить фильм без id");
-            throw new ValidationException("Id должен быть указан");
-        }
-
-        if (!users.containsKey(user.getId())) {
-            log.warn("Фильм с id {} не найден", user.getId());
-            throw new NotFoundException("Пользователь с id = " + user.getId() + " не найден");
-        }
-
-        normalizeUser(user);
-
-        users.put(user.getId(), user);
-        return user;
+        return userService.update(user);
     }
 
-    private void normalizeUser(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.info("Имя пользователя не указано, установлено значение логина");
-        }
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable @Positive Long id) {
+        return userService.findById(id);
     }
 
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0L);
-
-        return ++currentMaxId;
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable @Positive Long id, @PathVariable @Positive Long friendId) {
+        userService.addFriend(id, friendId);
     }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable @Positive Long id, @PathVariable @Positive Long friendId) {
+        userService.removeFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable @Positive Long id) {
+        return userService.findById(id).getFriends().stream()
+                .map(userService::findById)
+                .toList();
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable @Positive Long id,
+                                       @PathVariable @Positive Long otherId) {
+        return userService.getCommonFriends(id, otherId);
+    }
+
 }

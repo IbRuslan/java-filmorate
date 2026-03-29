@@ -1,0 +1,59 @@
+package ru.yandex.practicum.filmorate.storage.film;
+
+import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+@Component
+public class InMemoryFilmStorage implements  FilmStorage {
+    private final Map<Long, Film> films = new HashMap<>();
+
+    @Override
+    public Film create(Film film) {
+        film.setId(getNextId());
+        films.put(film.getId(), film);
+        return film;
+    }
+
+    @Override
+    public Film update(Film film) {
+        Film existing = films.get(film.getId());
+
+        if (existing == null) {
+            throw new NotFoundException("Фильм с id = " + film.getId() + " не найден");
+        }
+
+        film.setLikes(existing.getLikes());
+
+        films.put(film.getId(), film);
+        return film;
+    }
+
+    @Override
+    public Collection<Film> findAll() {
+        return films.values();
+    }
+
+    @Override
+    public Film findById(Long id) {
+        Film film = films.get(id);
+        if (film == null) {
+            throw new NotFoundException("Фильм с id = " + id + " не найден");
+        }
+        return film;
+    }
+
+    private long getNextId() {
+        long currentMaxId = films.keySet()
+                .stream()
+                .mapToLong(id -> id)
+                .max()
+                .orElse(0L);
+
+        return ++currentMaxId;
+    }
+}
