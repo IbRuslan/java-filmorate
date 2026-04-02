@@ -3,11 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.UserStorage;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -48,12 +50,26 @@ public class UserService {
         return userStorage.findById(id);
     }
 
+
+    public List<User> getFriends(Long userId) {
+        User user = findById(userId);
+
+        return user.getFriends().entrySet().stream()
+                .filter(e -> e.getValue() == FriendshipStatus.CONFIRMED)
+                .map(e -> findById(e.getKey()))
+                .toList();
+    }
+
     public void addFriend(Long userId, Long friendId) {
         User user = findById(userId);
         User friend = findById(friendId);
 
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
+        user.getFriends().put(friendId, FriendshipStatus.PENDING);
+
+        if (friend.getFriends().get(userId) == FriendshipStatus.PENDING) {
+            user.getFriends().put(friendId, FriendshipStatus.CONFIRMED);
+            friend.getFriends().put(userId, FriendshipStatus.CONFIRMED);
+        }
     }
 
     public void removeFriend(Long userId, Long friendId) {
@@ -68,8 +84,10 @@ public class UserService {
         User user = findById(userId);
         User other = findById(otherId);
 
-        return user.getFriends().stream()
-                .filter(other.getFriends()::contains)
+        return user.getFriends().entrySet().stream()
+                .filter(e -> e.getValue() == FriendshipStatus.CONFIRMED)
+                .map(Map.Entry::getKey)
+                .filter(other.getFriends()::containsKey)
                 .map(this::findById)
                 .toList();
     }
