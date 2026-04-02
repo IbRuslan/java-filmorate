@@ -53,9 +53,7 @@ public class UserController {
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable @Positive Long id) {
-        return userService.findById(id).getFriends().stream()
-                .map(userService::findById)
-                .toList();
+        return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")

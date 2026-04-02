@@ -13,6 +13,8 @@ import java.util.Set;
 
 @Data
 public class Film {
+    private Set<Genre> genres = new HashSet<>();
+    private MpaRating mpa;
     private Set<Long> likes = new HashSet<>();
     private Long id;
 
